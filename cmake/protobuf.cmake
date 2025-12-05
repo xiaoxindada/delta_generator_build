@@ -38,14 +38,14 @@ set(absl_libs
 
     absl_base
     absl_log
-    absl_status
     absl_strings
     absl_synchronization
-
+    absl_low_level_hash
+    absl_raw_hash_set
+    absl_status
+    absl_statusor
     absl_cleanup
     absl_log_internal_check_op
-    absl_statusor
-    absl_flat_hash_map
     absl_time
 )
 
