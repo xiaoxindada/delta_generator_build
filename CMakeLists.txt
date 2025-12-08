@@ -11,9 +11,11 @@ endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     message("This is use clang build")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
     add_link_options("-fuse-ld=lld")
-    link_libraries(c++ c++abi)
+    if(NOT CMAKE_SYSTEM_NAME STREQUAL "Android")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+        link_libraries(c++ c++abi)
+    endif()
 endif()
 
 add_link_options("-static")
