@@ -1,6 +1,6 @@
 set(erofs_utils_dir "${CMAKE_SOURCE_DIR}/src/erofs-utils")
 
-set(cflags
+set(erofs_cflags
         "-Wall"
         "-Wno-error=#warnings"
         "-Wno-ignored-qualifiers"
@@ -26,7 +26,7 @@ set(cflags
         "-DEROFS_MT_ENABLED"
 )
 
-set(common_libs 
+set(erofs_common_libs 
     base
     cutils
     ext2_uuid
@@ -59,7 +59,7 @@ list(REMOVE_ITEM liberofs_srcs
 
 add_library(erofs STATIC ${liberofs_srcs})
 generate_version_header("${erofs_utils_dir}/VERSION" "${erofs_utils_dir}/erofs-utils-version.h")
-target_compile_options(erofs PRIVATE ${cflags} "-include${erofs_utils_dir}/erofs-utils-version.h")
+target_compile_options(erofs PRIVATE ${erofs_cflags} "-include${erofs_utils_dir}/erofs-utils-version.h")
 target_include_directories(erofs PUBLIC
     ${libbase_headers}
     ${libcutils_headers}
@@ -70,39 +70,39 @@ target_include_directories(erofs PUBLIC
     ${liberofs_headers}
 )
 target_link_libraries(erofs PUBLIC
-    ${common_libs}
+    ${erofs_common_libs}
 )
 
 file(GLOB_RECURSE mkfs_srcs "${erofs_utils_dir}/mkfs/*.c")
 add_executable(mkfs.erofs ${mkfs_srcs})
-target_compile_options(mkfs.erofs PRIVATE ${cflags})
+target_compile_options(mkfs.erofs PRIVATE ${erofs_cflags})
 target_include_directories(mkfs.erofs PUBLIC
     ${liberofs_headers}
     ${libselinux_headers}
 )
 target_link_libraries(mkfs.erofs PRIVATE 
-    ${common_libs}
+    ${erofs_common_libs}
     erofs
 )
 
 file(GLOB_RECURSE dump_srcs "${erofs_utils_dir}/dump/*.c")
 add_executable(dump.erofs ${dump_srcs})
-target_compile_options(dump.erofs PRIVATE ${cflags})
+target_compile_options(dump.erofs PRIVATE ${erofs_cflags})
 target_include_directories(dump.erofs PUBLIC
     ${liberofs_headers}
 )
 target_link_libraries(dump.erofs PRIVATE 
-    ${common_libs}
+    ${erofs_common_libs}
     erofs
 )
 
 file(GLOB_RECURSE fsck_srcs "${erofs_utils_dir}/fsck/*.c")
 add_executable(fsck.erofs ${fsck_srcs})
-target_compile_options(fsck.erofs PRIVATE ${cflags})
+target_compile_options(fsck.erofs PRIVATE ${erofs_cflags})
 target_include_directories(fsck.erofs PUBLIC
     ${liberofs_headers}
 )
 target_link_libraries(fsck.erofs PRIVATE
-    ${common_libs}
+    ${erofs_common_libs}
     erofs
 )
