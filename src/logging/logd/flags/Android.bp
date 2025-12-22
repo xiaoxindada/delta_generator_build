@@ -1,0 +1,11 @@
+aconfig_declarations {
+    name: "logd_flags",
+    package: "android.logd.flags",
+    srcs: ["logd_flags.aconfig"],
+    container: "system",
+}
+
+cc_aconfig_library {
+    name: "logd_flags_c_lib",
+    aconfig_declarations: "logd_flags",
+}

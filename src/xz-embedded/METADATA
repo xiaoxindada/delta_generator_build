@@ -1,0 +1,19 @@
+# This project was upgraded with external_updater.
+# Usage: tools/external_updater/updater.sh update external/xz-embedded
+# For more info, check https://cs.android.com/android/platform/superproject/+/main:tools/external_updater/README.md
+
+name: "xz-embedded"
+description: "XZ Embedded"
+third_party {
+  license_type: UNENCUMBERED
+  last_upgrade_date {
+    year: 2024
+    month: 5
+    day: 30
+  }
+  identifier {
+    type: "Git"
+    value: "https://git.tukaani.org/xz-embedded.git"
+    version: "d4a9bc83c72d8087fe36ff388e89599626da7873"
+  }
+}

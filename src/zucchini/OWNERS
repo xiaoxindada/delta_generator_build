@@ -1,0 +1,10 @@
+
+# Chromium owners
+
+huangs@google.com
+
+
+# AOSP Owners
+
+zhangkelvin@google.com
+include platform/system/core:/janitors/OWNERS #{LAST_RESORT_SUGGESTION}

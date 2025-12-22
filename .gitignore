@@ -1,7 +1,9 @@
 /.vscode/**
 /prebuilt/**
 /*ndk
-/src/**
 /build/**
 *.tar.xz
 *.zip
+/zlib/zconf.h
+/**/*.pb.cc
+/**/*.pb.h

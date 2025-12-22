@@ -1,0 +1,53 @@
+package {
+    default_applicable_licenses: ["external_xz-embedded_license"],
+}
+
+// Added automatically by a large-scale-change
+// See: http://go/android-license-faq
+license {
+    name: "external_xz-embedded_license",
+    visibility: [":__subpackages__"],
+    license_kinds: [
+        "legacy_unencumbered",
+    ],
+    license_text: [
+        "COPYING",
+    ],
+}
+
+cc_library_static {
+    name: "libxz",
+    host_supported: true,
+    ramdisk_available: true,
+    vendor_ramdisk_available: true,
+    recovery_available: true,
+    visibility: [
+        "//system/update_engine:__subpackages__",
+        "//tools/security/fuzzing/llm/xz_fuzzer:__subpackages__",
+    ],
+    srcs: [
+        "linux/lib/xz/xz_crc32.c",
+        "linux/lib/xz/xz_dec_bcj.c",
+        "linux/lib/xz/xz_dec_lzma2.c",
+        "linux/lib/xz/xz_dec_stream.c",
+    ],
+    local_include_dirs: ["userspace"],
+
+    // We shouldn't enable branch/call/jump filters because they have no impact
+    // on Android OTA sizes (measured in http://b/329112384) --- the frequent
+    // function calls that this optimization is supposed to apply to will all go
+    // via the PLT, so the actual branch/call/jump instructions in the ELF file
+    // will be zeroed out anyway.
+    // Unfortunately, as long as we need to support decompressing _existing_
+    // OTA packages, we need to keep these in (but it's not worth adding new
+    // ones).
+    cflags: [
+        "-DXZ_DEC_X86",
+        "-DXZ_DEC_ARM",
+        "-DXZ_DEC_ARMTHUMB",
+        "-Wall",
+        "-Werror",
+    ],
+
+    export_include_dirs: ["linux/include/linux/"],
+}

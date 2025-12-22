@@ -1,0 +1,10 @@
+package: "android.logd.flags"
+container: "system"
+
+flag {
+  name: "enable_iouring"
+  namespace: "system_performance"
+  description: "Enables iouring usage in logd"
+  bug: "407827154"
+  is_fixed_read_only: true
+}

@@ -1,0 +1,268 @@
+/*
+ * Copyright (C) 2019 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include <log/logprint.h>
+
+#include <string>
+
+#include <gtest/gtest.h>
+
+#include <log/log_read.h>
+
+using namespace std::string_literals;
+
+size_t convertPrintable(char*, const char*, size_t);
+
+TEST(liblog, convertPrintable_ascii) {
+  auto input = "easy string, output same";
+  auto output_size = convertPrintable(nullptr, input, strlen(input));
+  EXPECT_EQ(output_size, strlen(input));
+
+  char output[output_size + 1];
+  memset(output, 'x', sizeof(output));
+
+  output_size = convertPrintable(output, input, strlen(input));
+  EXPECT_EQ(output_size, strlen(input));
+  EXPECT_STREQ(input, output);
+}
+
+TEST(liblog, convertPrintable_escapes) {
+  std::string input = "escape\x00\x7f\a\b\t\n\v\f\r\\"s;
+  // We want to test escaping of ASCII NUL at the end too.
+  auto input_size = input.size() + 1;
+
+  // Note that \t is not escaped.
+  std::string expected_output = "escape\\x00\\x7F\\a\\b\t\\n\\v\\f\\r\\\\\\x00"s;
+  auto expected_output_size = expected_output.size();
+
+  auto output_size = convertPrintable(nullptr, input.c_str(), input_size);
+  EXPECT_EQ(output_size, expected_output_size) << input_size;
+
+  char output[output_size + 1];
+  memset(output, 'x', sizeof(output));
+
+  output_size = convertPrintable(output, input.c_str(), input_size);
+  EXPECT_EQ(output_size, expected_output_size);
+  EXPECT_STREQ(expected_output.c_str(), output);
+}
+
+TEST(liblog, convertPrintable_validutf8) {
+  setlocale(LC_ALL, "C.UTF-8");
+
+  const char* input = "¢ह€𐍈";
+  size_t output_size = convertPrintable(nullptr, input, strlen(input));
+  EXPECT_EQ(output_size, strlen(input));
+
+  char output[output_size + 1];
+  memset(output, 'x', sizeof(output));
+
+  output_size = convertPrintable(output, input, strlen(input));
+  EXPECT_EQ(output_size, strlen(input));
+  EXPECT_STREQ(input, output);
+}
+
+TEST(liblog, convertPrintable_invalidutf8) {
+  auto input = "\x80\xC2\x01\xE0\xA4\x06\xE0\x06\xF0\x90\x8D\x06\xF0\x90\x06\xF0\x0E";
+  auto expected_output =
+      "\\x80\\xC2\\x01\\xE0\\xA4\\x06\\xE0\\x06\\xF0\\x90\\x8D\\x06\\xF0\\x90\\x06\\xF0\\x0E";
+  auto output_size = convertPrintable(nullptr, input, strlen(input));
+  EXPECT_EQ(output_size, strlen(expected_output));
+
+  char output[output_size + 1];
+  memset(output, 'x', sizeof(output));
+
+  output_size = convertPrintable(output, input, strlen(input));
+  EXPECT_EQ(output_size, strlen(expected_output));
+  EXPECT_STREQ(expected_output, output);
+}
+
+TEST(liblog, convertPrintable_mixed) {
+  setlocale(LC_ALL, "C.UTF-8");
+
+  const char* input =
+      "\x80\xC2¢ह€𐍈\x01\xE0\xA4\x06¢ह€𐍈\xE0\x06\a\b\xF0\x90¢ह€𐍈\x8D\x06\xF0\t\t\x90\x06\xF0\x0E";
+  const char* expected_output =
+      "\\x80\\xC2¢ह€𐍈\\x01\\xE0\\xA4\\x06¢ह€𐍈\\xE0\\x06\\a\\b\\xF0\\x90¢ह€𐍈\\x8D\\x06\\xF0\t\t"
+      "\\x90\\x06\\xF0\\x0E";
+  size_t output_size = convertPrintable(nullptr, input, strlen(input));
+  EXPECT_EQ(output_size, strlen(expected_output));
+
+  char output[output_size + 1];
+  memset(output, 'x', sizeof(output));
+
+  output_size = convertPrintable(output, input, strlen(input));
+  EXPECT_EQ(output_size, strlen(expected_output));
+  EXPECT_STREQ(expected_output, output);
+}
+
+TEST(liblog, log_print_different_header_size) {
+  constexpr int32_t kPid = 123;
+  constexpr uint32_t kTid = 456;
+  constexpr uint32_t kSec = 1000;
+  constexpr uint32_t kNsec = 999;
+  constexpr uint32_t kLid = LOG_ID_MAIN;
+  constexpr uint32_t kUid = 987;
+  constexpr char kPriority = ANDROID_LOG_ERROR;
+
+  auto create_buf = [](char* buf, size_t len, uint16_t hdr_size) {
+    memset(buf, 0, len);
+    logger_entry* header = reinterpret_cast<logger_entry*>(buf);
+    header->hdr_size = hdr_size;
+    header->pid = kPid;
+    header->tid = kTid;
+    header->sec = kSec;
+    header->nsec = kNsec;
+    header->lid = kLid;
+    header->uid = kUid;
+    char* message = buf + header->hdr_size;
+    uint16_t message_len = 0;
+    message[message_len++] = kPriority;
+    message[message_len++] = 'T';
+    message[message_len++] = 'a';
+    message[message_len++] = 'g';
+    message[message_len++] = '\0';
+    message[message_len++] = 'm';
+    message[message_len++] = 's';
+    message[message_len++] = 'g';
+    message[message_len++] = '!';
+    message[message_len++] = '\0';
+    header->len = message_len;
+  };
+
+  auto check_entry = [&](const AndroidLogEntry& entry) {
+    EXPECT_EQ(kSec, static_cast<uint32_t>(entry.tv_sec));
+    EXPECT_EQ(kNsec, static_cast<uint32_t>(entry.tv_nsec));
+    EXPECT_EQ(kPriority, entry.priority);
+    EXPECT_EQ(kUid, static_cast<uint32_t>(entry.uid));
+    EXPECT_EQ(kPid, entry.pid);
+    EXPECT_EQ(kTid, static_cast<uint32_t>(entry.tid));
+    EXPECT_STREQ("Tag", entry.tag);
+    EXPECT_EQ(4U, entry.tagLen);  // Apparently taglen includes the nullptr?
+    EXPECT_EQ(4U, entry.messageLen);
+    EXPECT_STREQ("msg!", entry.message);
+  };
+  alignas(logger_entry) char buf[LOGGER_ENTRY_MAX_LEN];
+  create_buf(buf, sizeof(buf), sizeof(logger_entry));
+
+  AndroidLogEntry entry_normal_size;
+  ASSERT_EQ(0,
+            android_log_processLogBuffer(reinterpret_cast<logger_entry*>(buf), &entry_normal_size));
+  check_entry(entry_normal_size);
+
+  create_buf(buf, sizeof(buf), sizeof(logger_entry) + 3);
+  AndroidLogEntry entry_odd_size;
+  ASSERT_EQ(0, android_log_processLogBuffer(reinterpret_cast<logger_entry*>(buf), &entry_odd_size));
+  check_entry(entry_odd_size);
+}
+
+#define TAG "InetDiagMessage"
+#define MSG "Destroyed 0 sockets, proto=IPPROTO_TCP, family=AF_INET6, states=14"
+
+static std::string FormatToString(const char* tag,
+                                  const char* msg,
+                                  const std::vector<std::string>& formats) {
+  setenv("TZ", "UTC", 1);
+  tzset();
+
+  AndroidLogEntry entry;
+  entry.tv_sec = entry.tv_nsec = 0;
+  entry.priority = ANDROID_LOG_ERROR;
+  entry.uid = entry.pid = entry.tid = 1234;
+  entry.tag = tag;
+  entry.tagLen = strlen(entry.tag);
+  entry.message = msg;
+  entry.messageLen = strlen(entry.message);
+
+  AndroidLogFormat* formatter = android_log_format_new();
+  for (const auto& format : formats) {
+    android_log_setPrintFormat(formatter, android_log_formatFromString(format.c_str()));
+  }
+
+  char buf[BUFSIZ];
+  size_t out_length;
+  char* ptr = android_log_formatLogLine(formatter, buf, sizeof(buf), &entry, &out_length);
+  return std::string(ptr, out_length);
+}
+
+TEST(liblog, android_log_formatLogLine_brief) {
+  EXPECT_EQ("E/" TAG "( 1234): " MSG "\n", FormatToString(TAG, MSG, {"brief"}));
+}
+
+TEST(liblog, android_log_formatLogLine_process) {
+  EXPECT_EQ("E( 1234) " MSG "  (" TAG ")\n", FormatToString(TAG, MSG, {"process"}));
+}
+
+TEST(liblog, android_log_formatLogLine_tag) {
+  EXPECT_EQ("E/" TAG ": " MSG "\n", FormatToString(TAG, MSG, {"tag"}));
+}
+
+TEST(liblog, android_log_formatLogLine_thread) {
+  EXPECT_EQ("E( 1234: 1234) " MSG "\n", FormatToString(TAG, MSG, {"thread"}));
+}
+
+TEST(liblog, android_log_formatLogLine_raw) {
+  EXPECT_EQ(MSG "\n", FormatToString(TAG, MSG, {"raw"}));
+}
+
+TEST(liblog, android_log_formatLogLine_time) {
+  EXPECT_EQ("01-01 00:00:00.000 E/" TAG "( 1234): " MSG "\n",
+            FormatToString(TAG, MSG, {"time"}));
+}
+
+TEST(liblog, android_log_formatLogLine_threadtime) {
+  EXPECT_EQ("01-01 00:00:00.000  1234  1234 E " TAG ": " MSG "\n",
+            FormatToString(TAG, MSG, {"threadtime"}));
+}
+
+TEST(liblog, android_log_formatLogLine_long) {
+  EXPECT_EQ("[ 01-01 00:00:00.000  1234: 1234 E/" TAG " ]\n" MSG "\n\n",
+            FormatToString(TAG, MSG, {"long"}));
+}
+
+TEST(liblog, android_log_formatLogLine_color) {
+  EXPECT_EQ("\x1B[31mE/" TAG "( 1234): " MSG "\x1B[0m\n",
+            FormatToString(TAG, MSG, {"color"}));
+}
+
+TEST(liblog, android_log_formatLogLine_usec) {
+  EXPECT_EQ("01-01 00:00:00.000000 E/" TAG "( 1234): " MSG "\n",
+            FormatToString(TAG, MSG, {"time", "usec"}));
+}
+
+TEST(liblog, android_log_formatLogLine_nsec) {
+  EXPECT_EQ("01-01 00:00:00.000000000 E/" TAG "( 1234): " MSG "\n",
+            FormatToString(TAG, MSG, {"time", "nsec"}));
+}
+
+TEST(liblog, android_log_formatLogLine_printable) {
+  EXPECT_EQ("E/a\tb     : a\\bb\\x03\n",
+            FormatToString("a\tb", "a\bb\x03", {"tag", "printable"}));
+}
+
+TEST(liblog, android_log_formatLogLine_year) {
+  EXPECT_EQ("1970-01-01 00:00:00.000 E/" TAG "( 1234): " MSG "\n",
+            FormatToString(TAG, MSG, {"time", "year"}));
+}
+
+TEST(liblog, android_log_formatLogLine_zone) {
+  EXPECT_EQ("01-01 00:00:00.000 +0000 E/" TAG "( 1234): " MSG "\n",
+            FormatToString(TAG, MSG, {"time", "zone"}));
+}
+
+TEST(liblog, android_log_formatLogLine_epoch) {
+  EXPECT_EQ("                  0.000 E/" TAG "( 1234): " MSG "\n",
+            FormatToString(TAG, MSG, {"time", "epoch"}));
+}

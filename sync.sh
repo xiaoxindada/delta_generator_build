@@ -8,8 +8,6 @@ FETCH_FROM="https://android.googlesource.com"
 
 GIT_CLONE_ARGS=(
     "--depth=1"
-    # disable detached HEAD warning
-    "-c advice.detachedHead=false"
 )
 
 GIT_CLONE_REPOS=(
@@ -18,7 +16,7 @@ GIT_CLONE_REPOS=(
     "platform/external/gflags"
     "platform/external/jsoncpp"
     "platform/external/boringssl"
-    "platform/system/core" # fs_mgr/libsnapshot
+    "platform/system/core"
     "platform/external/libchrome"
     "platform/external/xz-embedded"
     "platform/external/lzma"
@@ -26,9 +24,9 @@ GIT_CLONE_REPOS=(
     "platform/external/bsdiff"
     "platform/external/bzip2"
     "platform/external/brotli"
-    "platform/external/fec" # libfec_rs
+    "platform/external/fec"
     "platform/external/puffin"
-    "platform/system/extras" # libverity_tree
+    "platform/system/extras"
     "platform/external/zlib"
     "platform/external/zstd"
     "platform/external/lz4"
@@ -59,6 +57,9 @@ echo "Sync all repos from: ${FETCH_FROM}"
 echo "Sync branch: ${TAG}"
 echo "Git clone args: ${GIT_CLONE_ARGS[@]}"
 
+# disable detached HEAD warning
+git config --global advice.detachedHead false
+
 function clone() {
     local repo=$1
     local clone_dir=$2
@@ -70,6 +71,7 @@ function clone() {
         return
     fi
     if git clone "${FETCH_FROM}/${repo}" -b "${TAG}" "${GIT_CLONE_ARGS[@]}" "${clone_dir}/${repo_name}"; then
+		find "${clone_dir}/${repo_name}" -name ".git" | xargs rm -rf {}
         echo "Clone repo: ${repo} success."
     else
         echo "Clone repo: ${repo} failed."
@@ -89,6 +91,7 @@ function clone_version() {
         return
     fi
     if git clone "${FETCH_FROM}/${repo}" -b "${TAG}" "${GIT_CLONE_ARGS[@]}" "${clone_dir}/${repo_name}"; then
+		find "${clone_dir}/${repo_name}" -name ".git" | xargs rm -rf {}
         cd ${clone_dir}/${repo_name}
         git fetch --unshallow
         if git reset --hard ${version}; then

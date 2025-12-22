@@ -1,0 +1,37 @@
+#
+# Copyright (C) 2025 The Android Open Source Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+
+def add_trigger_parser(subparsers):
+  trigger_parser = subparsers.add_parser(
+      'trigger',
+      help=('The trigger subcommand is used'
+            ' to trigger trace collection'
+            ' from perfetto when a trigger'
+            ' is included in the trace'
+            ' config.'))
+  trigger_parser.add_argument('trigger_name', help='Trigger name.')
+
+
+def verify_trigger_args(args):
+  return args, None
+
+
+def execute_trigger_command(self, device):
+  error = device.check_device_connection()
+  if error is not None:
+    return error
+  return device.trigger_perfetto(self.trigger_name)

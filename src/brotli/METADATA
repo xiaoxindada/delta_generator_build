@@ -1,0 +1,23 @@
+# This project was upgraded with external_updater.
+# Usage: tools/external_updater/updater.sh update external/brotli
+# For more info, check https://cs.android.com/android/platform/superproject/main/+/main:tools/external_updater/README.md
+
+name: "brotli"
+description: "Brotli is a generic-purpose lossless compression algorithm."
+third_party {
+  license_type: NOTICE
+  security {
+    tag: "NVD-CPE2.3:cpe:/a:google:brotli:1.1.0"
+  }
+  last_upgrade_date {
+    year: 2025
+    month: 7
+    day: 24
+  }
+  homepage: "https://github.com/google/brotli"
+  identifier {
+    type: "Git"
+    value: "https://github.com/google/brotli.git"
+    version: "v1.1.0"
+  }
+}
