@@ -112,7 +112,7 @@ namespace skkk {
 			ExtractOperation::createErofsNode(eo->iter_path, typeId, &inode);
 #else
 			const ErofsNode *eNode = ExtractOperation::createErofsNode(eo->iter_path, typeId, &inode);
-			LOGCD("type=%s dataLayout=%s %s %s",
+			LOGD("type=%s dataLayout=%s %s %s",
 			      eNode->getTypeIdCStr(),
 			      eNode->getDataLayoutCStr(),
 			      eNode->getFsConfig().c_str(),
@@ -185,7 +185,7 @@ namespace skkk {
 
 		ret = erofs_ilookup(path.c_str(), &vi);
 		if (ret) {
-			LOGCE("path not found: '%s'", path.c_str());
+			LOGE("path not found: '%s'", path.c_str());
 			goto out;
 		}
 
@@ -198,7 +198,7 @@ namespace skkk {
 		if (recursive) {
 			ret = doInitNodeRecursive(vi.nid, vi.nid);
 			if (ret) {
-				LOGCE("failed to initialize ErofsNode, path: '%s'", path.c_str());
+				LOGE("failed to initialize ErofsNode, path: '%s'", path.c_str());
 			}
 		} else {
 			createErofsNode(vi);
@@ -631,12 +631,12 @@ namespace skkk {
 		};
 		if (utime(path, &ub) < 0)
 #endif
-			LOGCW("failed to set times: %s", path);
+			LOGW("failed to set times: %s", path);
 #ifndef __CYGWIN__
 		if (eo->preserve_owner) {
 			ret = lchown(path, inode->i_uid, inode->i_gid);
 			if (ret < 0)
-				LOGCW("failed to change ownership: %s", path);
+				LOGW("failed to change ownership: %s", path);
 		}
 
 		if (!S_ISLNK(inode->i_mode)) {
@@ -645,7 +645,7 @@ namespace skkk {
 			else
 				ret = chmod(path, inode->i_mode & ~eo->umask);
 			if (ret < 0)
-				LOGCW("failed to set permissions: %s", path);
+				LOGW("failed to set permissions: %s", path);
 		}
 #endif
 	}
@@ -775,7 +775,7 @@ namespace skkk {
 		err = doInitNodeRecursive(g_sbi.root_nid, g_sbi.root_nid);
 		if (err) {
 			rc = RET_EXTRACT_INIT_NODE_FAIL;
-			LOGCE("failed to initialize ErofsNode!");
+			LOGE("failed to initialize ErofsNode!");
 		}
 		return rc;
 	}
@@ -787,7 +787,7 @@ namespace skkk {
 		initDirByFiles(nullptr, &targetPath);
 		err = doInitNode(targetPath, true);
 		if (err) {
-			LOGCE("failed to initialize ErofsNode, path: '%s'", targetPath.c_str());
+			LOGE("failed to initialize ErofsNode, path: '%s'", targetPath.c_str());
 			goto exit;
 		}
 
@@ -813,7 +813,7 @@ namespace skkk {
 				}
 			}
 		} else {
-			LOGCE("target config error: '%s'", targetPath.c_str());
+			LOGE("target config error: '%s'", targetPath.c_str());
 		}
 
 		if (initializedCount > 0) rc = RET_EXTRACT_DONE;

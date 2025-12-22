@@ -30,7 +30,7 @@ namespace skkk {
 		handleWinFilePath(imgPath);
 #endif
 
-		LOGCD("config: imagePath=%s", imgPath.c_str());
+		LOGD("config: imagePath=%s", imgPath.c_str());
 		imgBaseName = path;
 		if (!imgPath.empty()) {
 			auto ps = imgPath.rfind('/');
@@ -38,7 +38,7 @@ namespace skkk {
 				imgBaseName = imgPath.substr(ps + 1, imgPath.size());
 			ps = imgBaseName.find('.');
 			if (ps != string::npos) imgBaseName.erase(ps, imgBaseName.size());
-			LOGCD("config: imgBaseName=%s", imgBaseName.c_str());
+			LOGD("config: imgBaseName=%s", imgBaseName.c_str());
 		}
 	}
 
@@ -80,7 +80,7 @@ namespace skkk {
 				isRoot = oDir[i] == '/';
 			}
 			if (isRoot) {
-				LOGCE("Not allow extracting to root: '%s'", outDir.c_str());
+				LOGE("Not allow extracting to root: '%s'", outDir.c_str());
 				rc = RET_EXTRACT_OUTDIR_ROOT;
 			} else {
 				configDir = outDir + "/config";
@@ -103,7 +103,7 @@ namespace skkk {
 			err = mkdirs(outDir.c_str(), 0700);
 			if (err) {
 				rc = RET_EXTRACT_CREATE_DIR_FAIL;
-				LOGCE("create out dir fail: '%s'", outDir.c_str());
+				LOGE("create out dir fail: '%s'", outDir.c_str());
 			}
 		}
 		return rc;
@@ -115,7 +115,7 @@ namespace skkk {
 			err = mkdirs(configDir.c_str(), 0700);
 			if (err) {
 				rc = RET_EXTRACT_CREATE_DIR_FAIL;
-				LOGCE("create config dir fail: '%s'", configDir.c_str());
+				LOGE("create config dir fail: '%s'", configDir.c_str());
 			}
 		}
 		return rc;
@@ -136,7 +136,7 @@ namespace skkk {
 			if (fileExists(targetConfigPath)) {
 				return initErofsNodeByTargetConfig(targetConfigPath, targetConfigRecurse);
 			} else {
-				LOGCE("target config '%s' does not exist! ", targetConfigPath.c_str());
+				LOGE("target config '%s' does not exist! ", targetConfigPath.c_str());
 			}
 		}
 		return initErofsNodeByTargetPath(targetPath);
@@ -163,7 +163,7 @@ namespace skkk {
 				if (erofsHardlinkFind(nid) == nullptr) {
 					int ret = erofsHardlinkInsert(eNode->getNid(), eNode->getPath().c_str());
 					if (ret < 0) {
-						LOGCE("erofsHardlinkInsert: err=%d[%s] path=%s",
+						LOGE("erofsHardlinkInsert: err=%d[%s] path=%s",
 							  ret,
 							  strerror(abs(ret)),
 							  eNode->getPath().c_str());
@@ -174,7 +174,7 @@ namespace skkk {
 				nodeOther.push_back(eNode);
 			}
 		}
-		LOGCD("erofsNodeClassification done");
+		LOGD("erofsNodeClassification done");
 	}
 
 	void ExtractOperation::addErofsNode(ErofsNode *eNode) { erofsNodes.push_back(eNode); }
@@ -182,7 +182,7 @@ namespace skkk {
 	const vector<ErofsNode *> &ExtractOperation::getErofsNodes() { return erofsNodes; }
 
 	static inline void printFsConfWithColor(const ErofsNode *eNode) {
-		LOGCI("type=%s dataLayout=%s fsConfig=[%s] seLabel=[%s]",
+		LOGI("type=%s dataLayout=%s fsConfig=[%s] seLabel=[%s]",
 			  eNode->getTypeIdCStr(),
 			  eNode->getDataLayoutCStr(),
 			  eNode->getFsConfig().c_str(),
@@ -212,7 +212,7 @@ namespace skkk {
 		FILE *mkfsOptionFile = nullptr;
 		char uuid[37] = {0};
 		const char *mountPoint = imgBaseName.c_str();
-		LOGCI(BROWN "fs_config|file_contexts|fs_options" LOG_RESET_COLOR "  " GREEN2_BOLD "saving..." LOG_RESET_COLOR);
+		LOGI("fs_config|file_contexts|fs_options saving...");
 		if (fsConfigFile && selinuxLabelsFile) {
 			for (auto &eNode: erofsNodes) {
 				if (otherPathsInRootDir.count(eNode->getPath()) > 0) continue;
@@ -247,9 +247,9 @@ namespace skkk {
 							outDir.c_str());
 				}
 			}
-			LOGCI(BROWN "fs_config|file_contexts|fs_options" LOG_RESET_COLOR "  " GREEN2_BOLD "done." LOG_RESET_COLOR);
+			LOGI("fs_config|file_contexts|fs_options done.");
 		} else
-			LOGCE(BROWN "fs_config|file_contexts|fs_options" LOG_RESET_COLOR "  " RED2_BOLD "fail!" LOG_RESET_COLOR);
+			LOGE("fs_config|file_contexts|fs_options fail!");
 		if (fsConfigFile) fclose(fsConfigFile);
 		if (selinuxLabelsFile) fclose(selinuxLabelsFile);
 		if (mkfsOptionFile) fclose(mkfsOptionFile);
@@ -261,7 +261,7 @@ namespace skkk {
 			for (const auto &eNode: erofsNodes) {
 				eNode->writeExceptionInfo2FileIfExists(infoFile);
 			}
-			LOGCE(RED2 "An exception occurred while fetching, the info has been saved!" COLOR_NONE);
+			LOGE(RED2 "An exception occurred while fetching, the info has been saved!" COLOR_NONE);
 		}
 	}
 
@@ -279,11 +279,7 @@ namespace skkk {
 	static inline void printExtractProgress(int totalSize, int index, int perPrint, bool hasEnter) {
 		if (index % perPrint == 0 || index == totalSize) {
 			float p = (float) index / (float) totalSize * 100.0f;
-			printf(BROWN2_BOLD "Extract: " COLOR_NONE
-				   GREEN2_BOLD "[ " COLOR_NONE RED2   "%.2f%%" LOG_RESET_COLOR GREEN2_BOLD " ]" COLOR_NONE
-				   "\r",
-				   p
-			);
+			printf("Extract: %0.2f \n", p);
 			fflush(stdout);
 			if (hasEnter && p == 100) [[unlikely]] {
 				printf("\n");
@@ -315,7 +311,7 @@ namespace skkk {
 
 	void ExtractOperation::extractErofsNodeMultiThread(bool isSilent) const {
 		extractNodeDirs();
-		LOGCI(GREEN2_BOLD "Using " COLOR_NONE RED2 "%d" COLOR_NONE GREEN2_BOLD " threads" COLOR_NONE, threadNum);
+		LOGI("Using %d threads", threadNum);
 
 		int nodeOtherSize = nodeOther.size();
 		threadpool tp(threadNum);
@@ -333,7 +329,7 @@ namespace skkk {
 				sleep(0);
 			}
 			printExtractProgress(1, 1, 1, true);
-			LOGCD("extractTaskRunCount=%d nodeFilesSize=%d", i, nodeOtherSize, nodeOther.size());
+			LOGD("extractTaskRunCount=%d nodeFilesSize=%d", i, nodeOtherSize, nodeOther.size());
 		}
 
 		writeExceptionInfo2File();

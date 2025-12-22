@@ -4,6 +4,7 @@
 /build/**
 *.tar.xz
 *.zip
+/src/**/.vscode/**
 /src/zlib/zconf.h
 /src/erofs-utils/erofs-utils-version.h
 /src/**/*.pb.cc
