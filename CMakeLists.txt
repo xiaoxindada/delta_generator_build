@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(delta_generator_build LANGUAGES C CXX)
+project(android_tools_build LANGUAGES C CXX)
 
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_CXX_STANDARD 23)
@@ -77,11 +77,7 @@ include("cmake/libselinux.cmake")
 include("cmake/libcrypto_utils.cmake")
 include("cmake/libavb.cmake")
 include("cmake/libevent.cmake")
-include("cmake/libext2fs.cmake")
-include("cmake/libext2_com_err.cmake")
-include("cmake/libext2_uuid.cmake")
 include("cmake/libext4_utils.cmake")
-include("cmake/liberofs.cmake")
 include("cmake/libsquashfs_utils.cmake")
 include("cmake/libfec_rs.cmake")
 include("cmake/libfec.cmake")
@@ -96,12 +92,40 @@ include("cmake/libsnapshot_cow.cmake")
 # protobuf
 include("cmake/absl.cmake")
 include("cmake/protobuf.cmake")
-include("cmake/aprotoc.cmake")
 
-# delta_generator
+# update_engine
 include("cmake/update_engine.cmake")
+
+# e2fsprogs
+include("cmake/e2fsprogs.cmake")
+
+# erofs
+include("cmake/erofs.cmake")
+
+# mkbootfs
+include("cmake/mkbootfs.cmake")
 
 # libchrome fuck
 include("cmake/libchrome.cmake")
 
-install(TARGETS aprotoc delta_generator)
+set(install_mkbootfs_targets mkbootfs)
+set(install_e2fsprogs_targets mke2fs e2fsdroid e2fsck resize debugfs)
+set(install_erofs_targets mkfs.erofs fsck.erofs dump.erofs)
+set(install_update_engine_targets delta_generator)
+
+install(
+    TARGETS ${install_mkbootfs_targets}
+    RUNTIME DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/bin/mkbootfs_prog"
+)
+install(
+    TARGETS ${install_e2fsprogs_targets}
+    RUNTIME DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/bin/e2fsprogs"
+)
+install(
+    TARGETS ${install_erofs_targets}
+    RUNTIME DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/bin/erofs"
+)
+install(
+    TARGETS ${install_update_engine_targets}
+    RUNTIME DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/bin/update_engine"
+)

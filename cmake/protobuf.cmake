@@ -251,6 +251,10 @@ set(protoc_srcs
         "${protobuf_dir}/src/google/protobuf/compiler/zip_writer.cc"
 )
 
+set(aprotoc_srcs
+    "${protobuf_dir}/src/google/protobuf/compiler/main.cc"
+)
+
 add_library(protobuf-cpp-lite STATIC ${protobuf_cpp_lite_srcs})
 target_compile_options(protobuf-cpp-lite PRIVATE ${protobuf_cflags})
 target_include_directories(protobuf-cpp-lite PUBLIC
@@ -292,3 +296,19 @@ target_link_libraries(protoc PUBLIC
     log
     zlib
 )
+
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "Android")
+add_executable(aprotoc ${aprotoc_srcs})
+target_compile_options(aprotoc PRIVATE ${protobuf_cflags} "-DHAVE_ZLIB=1")
+target_link_options(aprotoc PRIVATE "-static")
+target_include_directories(aprotoc PUBLIC
+    ${protobuf_dir}
+    ${protobuf_headers}
+    ${absl_headers}
+)
+target_link_libraries(aprotoc PRIVATE
+    absl_log_initialize
+    protoc
+    zlib
+)
+endif()

@@ -48,7 +48,17 @@ set(libevent_headers
     "${CMAKE_SOURCE_DIR}/src/libevent/compat"
     CACHE STRING "" FORCE
 )
-set(e2fsprogs_lib_headers "${CMAKE_SOURCE_DIR}/src/e2fsprogs/lib" CACHE STRING "" FORCE)
+set(e2fsprogs_lib_headers 
+    "${CMAKE_SOURCE_DIR}/src/e2fsprogs/e2fsck"
+    "${CMAKE_SOURCE_DIR}/src/e2fsprogs/lib"
+    "${CMAKE_SOURCE_DIR}/src/e2fsprogs/lib/blkid"
+    "${CMAKE_SOURCE_DIR}/src/e2fsprogs/lib/e2p"
+    "${CMAKE_SOURCE_DIR}/src/e2fsprogs/lib/et"
+    "${CMAKE_SOURCE_DIR}/src/e2fsprogs/lib/ext2fs"
+    "${CMAKE_SOURCE_DIR}/src/e2fsprogs/lib/ss"
+    "${CMAKE_SOURCE_DIR}/src/e2fsprogs/lib/support"
+    "${CMAKE_SOURCE_DIR}/src/e2fsprogs/lib/uuid"
+CACHE STRING "" FORCE)
 set(libext4_utils_headers 
     "${CMAKE_SOURCE_DIR}/src/extars/ext4_utils"
     "${CMAKE_SOURCE_DIR}/src/extras/ext4_utils/include"

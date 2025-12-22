@@ -16,8 +16,10 @@ set(libext4_utils_srcs
 add_library(${target_name} STATIC ${libext4_utils_srcs})
 target_compile_options(${target_name} PRIVATE ${cflags})
 target_include_directories(${target_name} PUBLIC
-    ${libext4_utils_headers}
     ${libbase_headers}
+    ${libcutils_headers}
+    ${libext4_utils_headers}
+    ${e2fsprogs_lib_headers}
 )
 target_link_libraries(${target_name} PUBLIC 
     base
