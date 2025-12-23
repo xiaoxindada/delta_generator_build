@@ -91,6 +91,9 @@ include("cmake/puffin.cmake")
 include("cmake/fs_mgr.cmake")
 include("cmake/libverity_tree.cmake")
 
+# sparse_img_tools
+include("cmake/sparse_img_tools.cmake")
+
 # protobuf
 include("cmake/absl.cmake")
 include("cmake/protobuf.cmake")
@@ -116,6 +119,7 @@ include("cmake/dtc.cmake")
 include("cmake/partition_tools.cmake")
 
 set(install_mkbootfs_targets mkbootfs)
+set(install_sparse_img_tools_targets simg2img img2simg)
 set(install_e2fsprogs_targets mke2fs e2fsdroid e2fsextract e2fsck resize debugfs)
 set(install_erofs_targets mkfs.erofs extract.erofs fsck.erofs dump.erofs)
 set(install_update_engine_targets delta_generator)
@@ -128,6 +132,10 @@ endif()
 install(
     TARGETS ${install_mkbootfs_targets}
     RUNTIME DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/bin/mkbootfs_prog"
+)
+install(
+    TARGETS ${install_sparse_img_tools_targets}
+    RUNTIME DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/bin/sparse_img_tools"
 )
 install(
     TARGETS ${install_e2fsprogs_targets}
