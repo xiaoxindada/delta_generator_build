@@ -8,5 +8,7 @@ function apply() {
 	done
 	cd $LOCALDIR
 }
+
 apply $LOCALDIR/patches/logging $LOCALDIR/src/logging
+apply $LOCALDIR/patches/libchrome $LOCALDIR/src/libchrome
 echo "apply patch done!"

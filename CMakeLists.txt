@@ -64,6 +64,7 @@ include("cmake/libjsonpbparse.cmake")
 include("cmake/libsparse.cmake")
 include("cmake/libprocessgroup.cmake")
 include("cmake/boringssl.cmake")
+include("cmake/libchrome.cmake")
 include("cmake/libzstd.cmake")
 include("cmake/libbz.cmake")
 include("cmake/libxz.cmake")
@@ -113,9 +114,6 @@ include("cmake/dtc.cmake")
 
 # partition_tools
 include("cmake/partition_tools.cmake")
-
-# libchrome fuck
-include("cmake/libchrome.cmake")
 
 set(install_mkbootfs_targets mkbootfs)
 set(install_e2fsprogs_targets mke2fs e2fsdroid e2fsextract e2fsck resize debugfs)
