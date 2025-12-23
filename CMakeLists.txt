@@ -99,6 +99,7 @@ include("cmake/update_engine.cmake")
 
 # e2fsprogs
 include("cmake/e2fsprogs.cmake")
+include("cmake/e2fsextract.cmake")
 
 # erofs
 include("cmake/erofs.cmake")
@@ -117,7 +118,7 @@ include("cmake/partition_tools.cmake")
 include("cmake/libchrome.cmake")
 
 set(install_mkbootfs_targets mkbootfs)
-set(install_e2fsprogs_targets mke2fs e2fsdroid e2fsck resize debugfs)
+set(install_e2fsprogs_targets mke2fs e2fsdroid e2fsextract e2fsck resize debugfs)
 set(install_erofs_targets mkfs.erofs extract.erofs fsck.erofs dump.erofs)
 set(install_update_engine_targets delta_generator)
 set(install_dtc_targets dtc mkdtimg fdtget fdtput fdtdump fdtoverlay)

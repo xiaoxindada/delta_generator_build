@@ -1,0 +1,55 @@
+language: C
+
+sudo: true
+
+cache:
+  - apt
+  - pip
+
+
+git:
+  depth: 3
+
+
+before_install:
+  - pip install --user cpp-coveralls
+
+
+matrix:
+  include:
+    # x86 Windows builds
+    - os: linux
+      compiler: i686-w64-mingw32-gcc
+      addons:
+        apt:
+          packages:
+            - cmake
+            - cmake-data
+            - wine
+            - binutils-mingw-w64-i686
+            - gcc-mingw-w64-i686
+            - g++-mingw-w64-i686
+      script:
+        - df -h
+        - cmake -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-x86.cmake -DCMAKE_BUILD_TYPE=Debug -DMMAN_TEST=ON -DMMAN_COVERAGE=ON -DMMAN_STATIC=ON
+        - make -j2
+      after_success:
+        - coveralls -e CMakeFiles
+
+    # x64 Windows builds
+    - os: linux
+      compiler: x86_64-w64-mingw32-gcc
+      addons:
+        apt:
+          packages:
+            - cmake
+            - cmake-data
+            - wine
+            - binutils-mingw-w64-x86-64
+            - gcc-mingw-w64-x86-64
+            - g++-mingw-w64-x86-64
+      script:
+        - df -h
+        - cmake -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-x64.cmake -DCMAKE_BUILD_TYPE=Debug -DMMAN_TEST=ON -DMMAN_COVERAGE=ON -DMMAN_STATIC=ON
+        - make -j2
+
